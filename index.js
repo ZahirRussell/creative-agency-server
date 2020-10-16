@@ -101,6 +101,32 @@ client.connect(err => {
           })
   })
 
+  //   app.post('/isAdmin' , (req, res)=>{
+  //     const email = req.body.email;
+  //     admins.find({email})
+  //         .toArray((err, documents) => {
+  //             if(documents.length > 0){
+  //                 res.send({person: 'admin'})
+  //             }else{
+  //                 res.send({person: 'user'})
+  //             }
+  //         })
+  // })
+
+
+
+  app.patch('/updateStatus', (req,res)=>{ 
+    orders.updateOne(
+        {_id : ObjectId(req.body.id)},
+        {
+            $set: { status: req.body.newStatus}
+        }
+    )
+    .then(result =>{
+        res.send(result.modifiedCount > 0)
+    })
+})
+
 });
 
 app.get('/', (req, res) => {
