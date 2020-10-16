@@ -2,6 +2,7 @@ const express = require('express')
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const { ObjectId } = require('mongodb');
+const fileUpload = require('express-fileupload');
 require('dotenv').config()
 
 
@@ -9,6 +10,7 @@ const port = 5000
 const app = express()
 app.use(cors());
 app.use(bodyParser.json());
+app.use(fileUpload());
 
 const MongoClient = require('mongodb').MongoClient;
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jfyjq.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
@@ -23,13 +25,24 @@ client.connect(err => {
   const feedback = client.db(process.env.DB_NAME).collection("feedback");
   const admins = client.db(process.env.DB_NAME).collection("admins");
 
-    app.post('/addService',(req,res) => {
-        const newService = req.body;
-        services.insertOne(newService)
-        .then(result => {
-           res.send(result.insertedCount > 0);
-        })
-    })
+    
+
+  app.post('/addService', (req, res) => {
+    const file = req.files.file;
+    const title = req.body.title;
+    const description = req.body.description;
+    const newImg = file.data;
+    const encImg = newImg.toString('base64');
+    var image = {
+      contentType: file.mimetype,
+      size: file.size,
+      img: Buffer.from(encImg, 'base64')
+  };
+    services.insertOne({ title, description, image })
+      .then(result => {
+        res.send(result.insertedCount > 0)
+      })
+  })
 
     app.get('/services',(req,res) =>{
         services.find({})
@@ -45,6 +58,26 @@ client.connect(err => {
             res.send(result.insertedCount>0)
         })
     })
+
+    // app.post('/addOrder', (req, res) => {
+    //   const file = req.files.file;
+    //   const name = req.body.name;
+    //   const email = req.body.email;
+    //   const serviceName = req.body.serviceName;
+    //   const details = req.body.details;
+    //   const price = req.body.price;
+    //   const newImg = file.data;
+    //   const encImg = newImg.toString('base64');
+    //   var image = {
+    //     contentType: file.mimetype,
+    //     size: file.size,
+    //     img: Buffer.from(encImg, 'base64')
+    // };
+    // orders.insertOne({ name,email, serviceName,details,price, image })
+    //     .then(result => {
+    //       res.send(result.insertedCount > 0)
+    //     })
+    // })
       
     
   app.get('/ordersByEmail', (req, res) => {
